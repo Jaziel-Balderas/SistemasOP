@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sistema de datos</title>
+<link rel="stylesheet" href="cssFile.css">
+</head>
+
+<body>
+
+<div id="login-box">
+<div class="left">
+<h1> Sign up </h1>
+
+<input type="text" id="username" name="username" placeholder="username" />
+<input type="password" id="password" name="password" placeholder="Password" />
+
+<input type="submit" id="signup" name="signup_submit" value="Sign up" />
+</div>
+
+<div class="right">
+<span class="loginwith">Sign in with<br />social network</span>
+
+<button class="social-signin facebook">Log in with Facebook</button>
+<button class="social-signin twitter">Log in with Twitter</button>
+<button class="social-signin google">Log in with Google+</button>
+</div>
+<div class="or">OR</div>
+</div>
+
+<div id="registered-info">
+  <!-- Aquí se mostrará la información de todos los usuarios registrados -->
+</div>
+
+</body>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getDatabase, set, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyC5VsU4-bipd169FkzJ3VCylIYsYh90RbQ",
+    authDomain: "systemdata-3ed4f.firebaseapp.com",
+    databaseURL: "https://systemdata-3ed4f-default-rtdb.firebaseio.com",
+    projectId: "systemdata-3ed4f",
+    storageBucket: "systemdata-3ed4f.appspot.com",
+    messagingSenderId: "1095925855348",
+    appId: "1:1095925855348:web:e03154a7da9341fd9e4d21"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const auth = getAuth();
+
+document.getElementById('signup').addEventListener('click', (e) => {
+  var email = document.getElementById('username').value;
+  var password = document.getElementById('password').value;
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      // Signed up 
+      const user = userCredential.user;
+
+      // Guarda la información del usuario en la base de datos
+      const newUserRef = push(ref(database, 'users'));
+      set(newUserRef, {
+          username: email,
+          email: email,
+          password: password
+      });
+
+      // Muestra la información del usuario registrado
+      displayAllRegisteredUsers();
+      alert('User created!');
+      // ...
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      // ..
+
+      alert(errorMessage);
+    });
+})
+
+// Función para mostrar la información de todos los usuarios registrados
+function displayAllRegisteredUsers() {
+  const registeredInfo = document.getElementById('registered-info');
+  registeredInfo.innerHTML = ""; // Limpiar el contenido existente
+  
+  // Obtener todos los usuarios registrados de la base de datos
+  onValue(ref(database, 'users'), (snapshot) => {
+    const users = snapshot.val();
+    for (const userId in users) {
+      const user = users[userId];
+      registeredInfo.innerHTML += `<p>Username: ${user.username}</p><p>Email: ${user.email}</p><p>Password: ${user.password}</p><br>`;
+    }
+  });
+}
+
+// Mostrar todos los usuarios registrados al cargar la página
+window.onload = function() {
+  displayAllRegisteredUsers();
+}
+</script>
+
+</html>
